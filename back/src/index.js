@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import Alunos from "./model/Alunos.js";
-import { inserir,excluir,listar,buscar} from "../teste.js";
+import { inserir,excluir,listar,buscar,editar} from "../teste.js";
 
 const app = express();
 
@@ -66,6 +66,23 @@ app.get("/alunos/matricula/:matricula", async (req, res) => {
     }
 });
 
+
+// Rota para editar um aluno
+app.put("/alunos", async (req, res) => {
+    try {
+        const aluno = req.body;
+
+        if (!aluno.nome || !aluno.turma || !aluno.matricula || aluno.cr === undefined) {
+            return res.status(400).json({ error: "Todos os campos são obrigatórios" });
+        }
+
+        await editar(aluno);
+        res.json({ message: "Aluno atualizado com sucesso" });
+    } catch (error) {
+        console.error("Erro ao atualizar aluno:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
 let port = process.env.PORT || 3000;
 
 app.listen(port, function(){

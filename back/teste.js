@@ -70,4 +70,26 @@ async function buscar(matricula) {
     }
 }
 
-export{inserir,excluir,listar,buscar}
+
+async function editar(aluno) {
+    if (!aluno.nome || !aluno.turma || !aluno.matricula || aluno.cr === undefined) {
+        throw new Error("Todos os campos são obrigatórios.");
+    }
+
+    const sql = `UPDATE ALUNOS SET NOME = ?, TURMA = ?, CR = ? WHERE MATRICULA = ?`;
+
+    try {
+        const resultado = await executeQuery(sql, [
+            aluno.nome,
+            aluno.turma,
+            aluno.cr,
+            aluno.matricula
+        ]);
+
+        return { message: "Aluno atualizado com sucesso!" };
+    } catch (err) {
+        throw new Error("Erro ao atualizar aluno: " + err.message);
+    }
+}
+
+export{inserir,excluir,listar,buscar,editar}

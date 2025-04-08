@@ -161,3 +161,38 @@ function rowProd(aluno) {
     //Função escreve os alunos na tela
     return `ID: ${aluno.id}, Nome: ${aluno.nome}, Turma: ${aluno.turma},Matricula: ${aluno.matricula}, Cr: ${aluno.cr}`;
 }
+
+document.getElementById("btnGravarEdicao").addEventListener("click", async () => {
+    const nome = document.getElementById("inpNomeEdicao").value.trim();
+    const turma = document.getElementById("inpTurmaEdicao").value.trim();
+    const matricula = document.getElementById("inpMatriculaEdicao").value.trim();    
+    const cr = parseFloat(document.getElementById("inpCrEdicao").value);
+
+    if (!nome || !turma || !matricula || isNaN(cr)) {
+        alert("Preencha todos os campos corretamente.");
+        return;
+    }
+
+    const aluno = { nome, turma, matricula, cr };
+
+    try {
+        const response = await fetch("http://localhost:5500/alunos", {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(aluno)
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            alert(data.message);
+        } else {
+            alert("Erro ao editar: " + data.error);
+        }
+    } catch (error) {
+        console.error("Erro na requisição:", error);
+        alert("Erro ao conectar com o servidor.");
+    }
+});
