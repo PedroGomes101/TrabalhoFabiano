@@ -1,198 +1,130 @@
-const btnListar = document.querySelector("#btnListar");
+import { BASEURL } from "./const.js";
+
+const inpNome = document.querySelector("#inpNome");
+const inpTurma = document.querySelector("#inpTurma");
+const inpMatricula = document.querySelector("#inpMatricula");
+const inpCr = document.querySelector("#inpCr");
 const btnGravar = document.querySelector("#btnGravar");
 const btnBuscar = document.querySelector("#btnBuscar");
-import {BASEURL} from "./const.js";
+const inpBuscar = document.querySelector("#inpBuscar");
+const lblBuscar = document.querySelector("#lblBuscar");
+const lblListar = document.querySelector("#lblListar");
 
-//Botões
+// === Cadastrar aluno ===
 btnGravar.onclick = async () => {
-    //Grava o aluno
-    alert("Gravando...");  
-    cadastrarAluno();
-}
+  if (!inpNome.value || !inpTurma.value || !inpMatricula.value || !inpCr.value) {
+    alert("Preencha todos os campos!");
+    return;
+  }
 
-btnExcluir.onclick = () => {
-    //Exclui o aluno utilizando a matricula
-    alert("Excluindo...");
-    excluirAluno();
+  const aluno = {
+    nome: inpNome.value,
+    turma: inpTurma.value,
+    matricula: inpMatricula.value,
+    cr: parseFloat(inpCr.value),
+  };
+
+  try {
+    const res = await fetch(`${BASEURL}/alunos`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(aluno),
+    });
+
+    if (!res.ok) throw new Error("Erro ao cadastrar aluno");
+
+    limparCampos();
+    await listarAlunos();
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao cadastrar aluno.");
+  }
 };
 
-btnBuscar.onclick = () => {
-    //Busca o aluno com base na matricula
-    alert("Buscando...");
-    buscarAluno();
+// === Buscar aluno ===
+btnBuscar.onclick = async () => {
+  const matricula = inpBuscar.value.trim();
+
+  if (!matricula) return alert("Digite uma matrícula!");
+
+  try {
+    const res = await fetch(`${BASEURL}/alunos/matricula/${matricula}`);
+    if (!res.ok) return (lblBuscar.textContent = "Aluno não encontrado.");
+
+    const aluno = await res.json();
+    lblBuscar.textContent = `Nome: ${aluno.nome} | Turma: ${aluno.turma} | Matrícula: ${aluno.matricula} | CR: ${aluno.cr}`;
+  } catch (err) {
+    console.error(err);
+    lblBuscar.textContent = "Erro ao buscar aluno.";
+  }
 };
 
-btnListar.onclick = () => {
-    //Lista todos os alunos
-    alert("Consultando alunos...");
-    listarAlunos();
-};
-
-//Funções
-async function cadastrarAluno() {
-    //Função que cadastra os alunos
-    const nome = document.querySelector("#inpNome");
-    const matricula = document.querySelector("#inpMatricula");
-    const turma = document.querySelector("#inpTurma");
-    const cr = document.querySelector("#inpCr");
-    
-    if (!nome || !matricula || !turma || !cr) { 
-        alert("Preencha todos os campos!");
-        return;
-    }
-    const aluno = { 
-
-        nome: nome.value, 
-        matricula: matricula.value, 
-        turma: turma.value, 
-        cr: cr.value 
-    };
-
-    try {
-        const response = await fetch(`${BASEURL}/alunos`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(aluno),
-        });
-
-        if (!response.ok) {
-            throw new Error(`Erro HTTP! Status: ${response.status}`);
-        }
-
-        // Limpa os campos após o cadastro
-        document.querySelector("#inpNome").value = "";
-        document.querySelector("#inpMatricula").value = "";
-        document.querySelector("#inpTurma").value = "";
-        document.querySelector("#inpCr").value = "";
-    } catch (error) {
-        console.error("Erro ao cadastrar aluno:", error);
-        mensagem.innerHTML = `Erro ao cadastrar aluno: ${error.message}`;
-    }
-}
-async function excluirAluno() {
-    // Função que exclui os alunos
-    const inpExcluir = document.querySelector("#inpExcluir");
-    const matriculaAluno = inpExcluir.value.trim();
-
-    if (!matriculaAluno) {
-        alert("Informe uma matrícula válida!");
-        return;
-    }
-
-    console.log(`${BASEURL}/alunos/${matriculaAluno}`);
-
-    try {
-        const response = await fetch(`${BASEURL}/alunos/${matriculaAluno}`, {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-        });
-
-        if (response.ok) {
-            alert("Aluno excluído com sucesso!");
-
-            // Limpa o campo de exclusão
-            inpExcluir.value = "";
-
-            // Opcional: Atualiza a tabela automaticamente após exclusão
-            listarAlunos(); // Se essa função estiver definida
-
-        } else {
-            alert("Erro ao excluir aluno. Verifique se a matrícula está correta.");
-            console.log("Erro ao excluir aluno. Verifique se a matrícula está correta.");
-        }
-
-    } catch (error) {
-        console.error("Erro ao excluir aluno:", error);
-    }
-}
-
-async function buscarAluno() {
-    //Função que busca os alunos com a matricula
-    const inpBuscar = document.querySelector("#inpBuscar").value.trim();;
-    const lblBuscar = document.querySelector("#lblBuscar");
-    const matricula = inpBuscar;
-
-    try {
-        const response = await fetch(`${BASEURL}/alunos/matricula/${matricula}`, {
-            method: "GET",
-            headers: { "Content-Type": "application/json" }
-        });
-
-        if (!response.ok) {
-            lblBuscar.textContent = "Aluno não encontrado. Digite uma matricula valida!";
-            return;
-        }
-        
-        const aluno = await response.json();
-        lblBuscar.textContent = `Nome: ${aluno.nome} | Turma: ${aluno.turma} | Matrícula: ${aluno.matricula}`;
-    } catch (error) {
-        console.error("Erro ao buscar aluno:!", error);
-        lblBuscar.textContent = "Erro ao buscar aluno. Verifique a conexão.";
-    }
-}
+// === Listar alunos ===
 async function listarAlunos() {
-    //Função que lista todos os alunos
-    const lblLista = document.querySelector("#lblListar");
-    lblLista.innerHTML = "";
+  lblListar.innerHTML = "";
 
-    try {
-        const response = await fetch(`${BASEURL}/alunos`);
-        if (!response.ok) {
-            throw new Error(`Erro HTTP! Status: ${response.status}`);
-        }
+  try {
+    const res = await fetch(`${BASEURL}/alunos`);
+    const alunos = await res.json();
 
-        const dados = await response.json();
-
-        if (Array.isArray(dados)) {
-            dados.forEach(aluno => {
-                const alunoDiv = document.createElement("div");
-                alunoDiv.textContent = rowProd(aluno);
-                lblLista.appendChild(alunoDiv);
-            });
-        } else {
-            lblLista.innerHTML = "A resposta não contém uma lista de alunos.";
-        }
-    } catch (error) {
-        console.error("Erro ao carregar alunos:", error);
-        lblLista.innerHTML = `Erro ao carregar alunos: ${error.message}`;
+    if (!Array.isArray(alunos)) {
+      lblListar.innerHTML = "Nenhum aluno encontrado.";
+      return;
     }
+
+    alunos.forEach((aluno) => {
+      const card = document.createElement("div");
+      card.className = "card mb-2 p-3 shadow-sm";
+
+      card.innerHTML = `
+        <strong>${aluno.nome}</strong><br/>
+        Turma: ${aluno.turma} | Matrícula: ${aluno.matricula} | CR: ${aluno.cr}
+        <div class="mt-2">
+          <a href="edicao.html?matricula=${aluno.matricula}" class="btn btn-sm btn-warning me-2">Editar</a>
+          <button class="btn btn-sm btn-danger btn-excluir" data-matricula="${aluno.matricula}">Excluir</button>
+        </div>
+      `;
+
+      lblListar.appendChild(card);
+    });
+
+    // Eventos de exclusão com remoção dinâmica
+    document.querySelectorAll(".btn-excluir").forEach((btn) => {
+      btn.onclick = async () => {
+        const matricula = btn.dataset.matricula;
+        if (!confirm(`Deseja excluir o aluno com matrícula ${matricula}?`)) return;
+
+        try {
+          const res = await fetch(`${BASEURL}/alunos/${matricula}`, {
+            method: "DELETE",
+          });
+
+          if (res.ok) {
+            alert("Aluno excluído com sucesso.");
+            btn.closest(".card").remove();
+            listarAlunos();
+          } else {
+            alert("Erro ao excluir aluno.");
+          }
+        } catch (err) {
+          console.error(err);
+          alert("Erro ao excluir aluno.");
+        }
+      };
+    });
+  } catch (err) {
+    console.error(err);
+    lblListar.innerHTML = "Erro ao carregar alunos.";
+  }
 }
-function rowProd(aluno) {
-    //Função escreve os alunos na tela
-    return `ID: ${aluno.id}, Nome: ${aluno.nome}, Turma: ${aluno.turma},Matricula: ${aluno.matricula}, Cr: ${aluno.cr}`;
+
+// === Utilitários ===
+function limparCampos() {
+  inpNome.value = "";
+  inpTurma.value = "";
+  inpMatricula.value = "";
+  inpCr.value = "";
 }
 
-document.getElementById("btnGravarEdicao").addEventListener("click", async () => {
-    const nome = document.getElementById("inpNomeEdicao").value.trim();
-    const turma = document.getElementById("inpTurmaEdicao").value.trim();
-    const matricula = document.getElementById("inpMatriculaEdicao").value.trim();    
-    const cr = parseFloat(document.getElementById("inpCrEdicao").value);
-
-    if (!nome || !turma || !matricula || isNaN(cr)) {
-        alert("Preencha todos os campos corretamente.");
-        return;
-    }
-
-    const aluno = { nome, turma, matricula, cr };
-
-    try {
-        const response = await fetch("http://localhost:5500/alunos", {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(aluno)
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            alert(data.message);
-        } else {
-            alert("Erro ao editar: " + data.error);
-        }
-    } catch (error) {
-        console.error("Erro na requisição:", error);
-        alert("Erro ao conectar com o servidor.");
-    }
-});
+// Carrega alunos automaticamente ao iniciar
+listarAlunos();

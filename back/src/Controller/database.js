@@ -2,10 +2,9 @@
 import firebird from "node-firebird";
 
 const dbOptions = {
-  host: "127.0.0.1",
+    host: "localhost",
   port: 3050,
-  database:
-    "C:\\TrabalhoFabiano\\back\\Banco\\Alunos.fdb",
+database: "C:\\Users\\evert\\OneDrive\\Documentos\\TrabalhoFabiano\\back\\Banco\\Alunos.fdb",
   user: "sysdba",
   password: "masterkey",
   lowercase_keys: true,
