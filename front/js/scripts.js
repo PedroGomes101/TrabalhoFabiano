@@ -102,7 +102,7 @@ async function listarAlunos() {
           if (res.ok) {
             alert("Aluno excluído com sucesso.");
             btn.closest(".card").remove();
-            listarAlunos();
+           await listarAlunos();
           } else {
             alert("Erro ao excluir aluno.");
           }
